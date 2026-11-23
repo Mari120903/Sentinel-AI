@@ -1,7 +1,11 @@
 
 import json
 import os
+from processor import normalize_text
 
+# ==========================================
+# 1. ALMACENAMIENTO
+# ==========================================
 
 def save_memory(data, filename="memory.json"):
     with open(filename, "w", encoding="utf-8") as file:
@@ -14,11 +18,6 @@ def load_memory(filename="memory.json"):
 
     with open(filename, "r", encoding="utf-8") as file:
         return json.load(file)
-
-
-def get_reading_history(filename="memory.json"):
-    memory = load_memory(filename)
-    return memory.get("reading_history", [])
 
 
 def save_reading(url, chunks, filename="memory.json"):
@@ -43,6 +42,15 @@ def save_reading(url, chunks, filename="memory.json"):
     print("[Memory] Nueva lectura guardada.")
 
 
+# ==========================================
+# 2. RECUPERACIÓN
+# ==========================================
+
+def get_reading_history(filename="memory.json"):
+    memory = load_memory(filename)
+    return memory.get("reading_history", [])
+
+
 def get_reading_by_url(url, filename="memory.json"):
     history = get_reading_history(filename)
 
@@ -52,23 +60,49 @@ def get_reading_by_url(url, filename="memory.json"):
 
     return None
 
+
+# ==========================================
+# 3. BÚSQUEDA POR RELEVANCIA
+# ==========================================
+
+
 def search_memory(query, filename="memory.json"):
     history = get_reading_history(filename)
     results = []
 
-    query = query.lower()
+    normalized_query = normalize_text(query)
+    terms = normalized_query.split()
 
     for reading in history:
         for chunk in reading["chunks"]:
-            if query in chunk.lower():
+            normalized_chunk = normalize_text(chunk)
+            score = 0
+
+            for term in terms:
+                if term in normalized_chunk:
+                    score += 1
+
+            if score > 0:
                 results.append({
                     "url": reading["url"],
-                    "content": chunk
+                    "content": chunk,
+                    "score": score
                 })
+
+    results.sort(
+        key=lambda result: result["score"],
+        reverse=True
+    )
 
     return results
 
+
+# ==========================================
+# 4. PRUEBAS
+# ==========================================
+
 if __name__ == "__main__":
+
     recovered = load_memory()
 
     print("Información recuperada:")
@@ -84,6 +118,8 @@ if __name__ == "__main__":
         print(f"URL: {reading['url']}")
         print(f"Fragmentos: {len(reading['chunks'])}")
 
+    # Recuperación por URL
+
     result = get_reading_by_url("https://example.com")
 
     print("\nPrueba de recuperación por URL:")
@@ -95,15 +131,17 @@ if __name__ == "__main__":
     else:
         print("Página no encontrada.")
 
-    results = search_memory("example")
+    # Búsqueda por relevancia
 
-    print("\nBúsqueda de contenido:")
+    results = search_memory("example domain")
+
+    print("\nBúsqueda por relevancia:")
 
     if results:
         for i, result in enumerate(results, start=1):
             print(f"\nResultado {i}:")
             print(f"URL: {result['url']}")
+            print(f"Puntuación: {result['score']}")
             print(f"Contenido: {result['content']}")
     else:
         print("No se encontraron coincidencias.")
-

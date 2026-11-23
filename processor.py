@@ -5,6 +5,11 @@ def clean_text(text):
     text = re.sub(r"\s+", " ", text)
     return text.strip()
 
+def normalize_text(text):
+    text = text.lower()
+    text = re.sub(r"[^\w\s]", "", text)
+    return text
+
 def split_text(text, chunk_size=200, overlap=20):
     if chunk_size <= 0:
         raise ValueError("chunk_size debe ser mayor que cero")
@@ -23,6 +28,7 @@ def split_text(text, chunk_size=200, overlap=20):
 
     return chunks
 
+
 if __name__ == "__main__":
     sample = "Sentinel AI procesa información. " * 30
 
@@ -34,3 +40,12 @@ if __name__ == "__main__":
     for i, chunk in enumerate(chunks):
         print(f"\nFragmento {i + 1}:")
         print(chunk)
+
+    print("\nPrueba de normalización:")
+
+    sample = "¡Hola, Sentinel AI! Estamos procesando INFORMACIÓN."
+
+    normalized = normalize_text(sample)
+
+    print(f"Original: {sample}")
+    print(f"Normalizado: {normalized}")
