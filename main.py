@@ -2,7 +2,7 @@
 from search import test_connection
 from reader import read_page
 from processor import clean_text, split_text
-from memory import save_memory, load_memory
+from memory import save_reading
 
 print("=" * 40)
 print("Sentinel AI v0.1")
@@ -25,17 +25,7 @@ if content:
 
     print(f"\nCantidad de fragmentos: {len(chunks)}")
 
-    memory = load_memory()
-
-    if "reading_history" not in memory:
-        memory["reading_history"] = []
-
-    memory["reading_history"].append({
-        "url": "https://example.com",
-        "chunks": chunks
-    })
-
-    save_memory(memory)
+    save_reading("https://example.com", chunks)
 
     print("\n[Memory] Información guardada correctamente.")
 
